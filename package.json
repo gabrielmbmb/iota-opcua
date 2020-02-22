@@ -1,0 +1,41 @@
+{
+  "name": "iota-opcua",
+  "version": "1.0.0",
+  "description": "Bridge between NGSI and OPC UA protocols",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gabrielmbmb/iota-opcua.git"
+  },
+  "keywords": [
+    "NGSI",
+    "OPC",
+    "UA",
+    "IoT",
+    "Agent",
+    "FIWARE",
+    "OCB",
+    "Orion",
+    "Context",
+    "Broker"
+  ],
+  "author": "Gabriel Martin Blazquez <gmartinbdev@gmail.com>",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/gabrielmbmb/iota-opcua/issues"
+  },
+  "homepage": "https://github.com/gabrielmbmb/iota-opcua#readme",
+  "dependencies": {
+    "eslint-config-prettier": "^6.10.0",
+    "iotagent-node-lib": "^2.11.0",
+    "node-opcua": "^2.4.4"
+  },
+  "devDependencies": {
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb-base": "^14.0.0",
+    "eslint-plugin-import": "^2.20.1"
+  }
+}
