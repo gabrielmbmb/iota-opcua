@@ -29,9 +29,11 @@
   },
   "homepage": "https://github.com/gabrielmbmb/iota-opcua#readme",
   "dependencies": {
+    "async": "^3.1.1",
     "eslint-config-prettier": "^6.10.0",
     "iotagent-node-lib": "^2.11.0",
-    "node-opcua": "^2.4.4"
+    "node-opcua": "^2.4.4",
+    "winston": "^3.2.1"
   },
   "devDependencies": {
     "eslint": "^6.8.0",
