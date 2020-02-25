@@ -101,6 +101,39 @@ config.iota = {
   defaultResource: '/iot/opcua',
 };
 
-config.opcua = {};
+config.opcua = {
+  /**
+   * OPC UA server endpoint
+   */
+  endpoint: 'opc.tcp://opcua.rocks:4840',
+  /**
+   * Connection strategy to OPC UA server
+   */
+  connectionStrategy: {
+    initialDelay: 1000,
+    maxRetry: 5,
+    maxDelay: 5 * 1000,
+  },
+  /**
+   * OPC UA connection security mode.
+   * Valid values: 'Invalid', 'None', 'Sign' and 'SignAndEncrypt'
+   */
+  securityMode: 'None',
+  /**
+   * OPC UA connection security policy.
+   * Valid values: 'Invalid', 'None', 'Basic128', 'Basic192', 'Basic192Rsa15',
+   *               'Basic256Rsa15','Basic256Sha256','Aes128_Sha256_RsaOaep',
+   *               'PubSub_Aes128_CTR', 'PubSub_Aes256_CTR', 'Basic128Rsa15',
+   *               'Basic256'
+   */
+  securityPolicy: 'None',
+  /**
+   * OPC UA server login credentials
+   */
+  credentials: {
+    userName: undefined,
+    password: undefined,
+  },
+};
 
 module.exports = config;
