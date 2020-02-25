@@ -56,8 +56,6 @@ function configureLogger(config) {
     level: config.iota.logLevel.toLowerCase(),
     transports: transports,
   });
-
-  logger.addColors({ error: 'red' });
 }
 
 /**
