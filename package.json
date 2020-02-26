@@ -4,6 +4,7 @@
   "description": "Bridge between NGSI and OPC UA protocols",
   "main": "index.js",
   "scripts": {
+    "agent": "node --no-deprecation index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
