@@ -17,7 +17,7 @@ config.iota = {
   /**
    * Orion Context Broker configuration.
    */
-  orion: {
+  contextBroker: {
     /**
      * Host where OCB instance is located.
      */
