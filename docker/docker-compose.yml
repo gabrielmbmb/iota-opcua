@@ -1,0 +1,30 @@
+version: '3.7'
+
+services:
+  mongo:
+    image: mongo:3.6
+    command: --nojournal
+    expose:
+      - '27017'
+    volumes:
+      - mongo:/data
+    networks:
+      - orion-net
+
+  orion:
+    image: fiware/orion
+    depends_on:
+      - mongo
+    expose:
+      - '1026'
+    ports:
+      - '1026:1026'
+    networks:
+      - orion-net
+    command: -dbhost mongo -logLevel DEBUG
+
+volumes: 
+  mongo:
+
+networks:
+  orion-net:
