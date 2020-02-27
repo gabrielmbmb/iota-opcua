@@ -11,6 +11,17 @@ let opcuaSubscription;
 let opcuaClients = {};
 
 /**
+ * Stop the OPC UA clients
+ *
+ * @async
+ */
+async function stopOpcuaClients() {
+  for (endpoint in opcuaClients) {
+    await opcuaClients[endpoint].stop();
+  }
+}
+
+/**
  * Registers a new IoT Agent device
  *
  * @param {Object} newDevice New device
@@ -55,38 +66,26 @@ function removeDeviceHandler(device, cb) {
  *
  * @async
  * @param {Object} newConfig IoTA configuration
- * @param {Function} cb Callback function
+ * @param {Function} callback Callback function
  */
-async function start(newConfig, cb) {
-  try {
-    const opcuaClient = new Client(
-      newConfig.opcua.endpoint,
-      newConfig.opcua.securityMode,
-      newConfig.opcua.securityPolicy,
-      newConfig.opcua.credentials,
-      newConfig.opcua.connectionStrategy
-    );
-
-    // async.series(
-    //   [
-    //     opcuaClient.connect(),
-    //     opcuaClient.createSession,
-    //     opcuaClient.createSubscription,
-    //     opcuaClient.stop,
-    //   ],
-    //   function(err, res) {
-    //     console.log(err, res);
-    //   }
-    // );
-  } catch (err) {
-    console.log(err);
-  }
-
+function start(newConfig, cb) {
   iotAgentLib.activate(newConfig.iota, error => {
     if (error) {
       cb(error);
     } else {
       logger.info('IoT Agent lib has been activated!');
+
+      const opcuaClient = new Client(
+        newConfig.opcua.endpoint,
+        newConfig.opcua.securityMode,
+        newConfig.opcua.securityPolicy,
+        newConfig.opcua.credentials,
+        newConfig.opcua.connectionStrategy
+      );
+
+      opcuaClient.startClient();
+
+      opcuaClients[newConfig.opcua.endpoint] = opcuaClient;
 
       // Set handlers
       iotAgentLib.setProvisioningHandler(provisionHandler);
@@ -107,9 +106,12 @@ async function start(newConfig, cb) {
  */
 function stop() {
   logger.info('Stopping the OPC UA IoT Agent...');
-  async.series([iotAgentLib.resetMiddlewares, iotAgentLib.deactivate], () => {
-    logger.info('OPC UA IoT Agent has been stopped!');
-  });
+  async.series(
+    [stopOpcuaClients, iotAgentLib.resetMiddlewares, iotAgentLib.deactivate],
+    () => {
+      logger.info('OPC UA IoT Agent has been stopped!');
+    }
+  );
 }
 
 module.exports = {
