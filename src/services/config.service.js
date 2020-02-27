@@ -10,6 +10,10 @@ let config;
 function configureLogger(config) {
   // Custom JSON formatter
   const jsonFormatter = logger.format.combine(
+    logger.format(info => {
+      info.level = info.level.toUpperCase();
+      return info;
+    })(),
     logger.format.timestamp(),
     logger.format.splat(),
     logger.format.printf(info =>
@@ -24,6 +28,10 @@ function configureLogger(config) {
   const transports = [
     new logger.transports.Console({
       format: logger.format.combine(
+        logger.format(info => {
+          info.level = info.level.toUpperCase();
+          return info;
+        })(),
         logger.format.colorize(),
         logger.format.timestamp(),
         logger.format.splat(),
