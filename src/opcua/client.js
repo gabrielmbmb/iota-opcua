@@ -73,7 +73,11 @@ class Client {
 
     logger.info('Creating new OPC UA client');
     logger.info(`OPC UA Server Endpoint \t=> ${chalk.cyan(this.endpoint)}`);
-    logger.info(`OPC UA Security Mode \t\t=> ${chalk.cyan(this.securityMode)}`);
+    logger.info(
+      `OPC UA Security Mode \t\t=> ${chalk.cyan(
+        this.securityMode
+      )} (${securityMode})`
+    );
     logger.info(
       `OPC UA Security Policy \t=> ${chalk.cyan(this.securityPolicy)}`
     );
@@ -95,7 +99,7 @@ class Client {
   async connect() {
     try {
       await this.client.connect(this.endpoint);
-      logger.info(`Connected to OPC UA Server: ${this.endpoint}`);
+      logger.info(`${chalk.bgWhite.bold.black(this.endpoint)} \t=> connected`);
     } catch {
       throw new OPCUAConnectionError(
         `Could not connect to OPC UA server: ${this.endpoint}`
@@ -109,6 +113,9 @@ class Client {
   async createSession() {
     try {
       this.session = await this.client.createSession(this.credentials);
+      logger.info(
+        `${chalk.bgWhite.bold.black(this.endpoint)} \t=> session created`
+      );
     } catch {
       throw new OPCUASessionError(
         `Could not create a session in OPC UA server: ${this.endpoint}`
@@ -116,27 +123,25 @@ class Client {
     }
 
     // Callbacks for session events
-    opcuaClient.on('connection_reestablished', () => {
+    this.client.on('connection_reestablished', () => {
       logger.info(
         chalk.bgGreen.bold.black(
-          `Connection with OPC UA server ${this.endpoint} has been reestablished`
+          `${this.endpoint} \t=> connection reestablished`
         )
       );
     });
 
-    opcuaClient.on('backoff', (retry, delay) => {
+    this.client.on('backoff', (retry, delay) => {
       logger.warn(
         chalk.bgWhite.bold.yellow(
-          `backoff attempt #${retry}. Retrying in ${delay}. OPC UA server: ${this.endpoint}`
+          `${this.endpoint} \t=> backoff attempt #${retry}. Retrying in ${delay}.`
         )
       );
     });
 
-    opcuaClient.on('start_reconnection', () => {
+    this.client.on('start_reconnection', () => {
       logger.info(
-        chalk.bgGreen.bold.black(
-          `Starting reconnection with OPC UA server ${this.endpoint}!`
-        )
+        chalk.bgGreen.bold.black(`${this.endpont} \t=> starting reconnection`)
       );
     });
   }
@@ -156,6 +161,9 @@ class Client {
 
     try {
       this.subscription = this.session.createSubscription2(subscriptionOptions);
+      logger.info(
+        `${chalk.bgWhite.bold.black(this.endpoint)} \t=> subscription created`
+      );
     } catch {
       throw new OPCUASubscriptionError(
         `Could not create a subscription in OPC UA server: ${this.endpoint}`
@@ -163,38 +171,45 @@ class Client {
     }
 
     // Callbacks for subscription events
-    this.subscription.on('started', () => {
-      logger.info(
-        `Subscription has been started in OPC UA server ${this.endpoint}`
-      );
-    });
+    // this.subscription.on('started', () => {
+    //   logger.info(
+    //     `Subscription has been started in OPC UA server ${this.endpoint}`
+    //   );
+    // });
 
-    this.subscription.on('terminated', () => {
-      logger.info(
-        `Subscription has been terminated in OPC UA server ${this.endpoint}`
-      );
-    });
+    // this.subscription.on('terminated', () => {
+    //   logger.info(
+    //     `Subscription has been terminated in OPC UA server ${this.endpoint}`
+    //   );
+    // });
+  }
+
+  async startClient() {
+    await this.connect();
+    await this.createSession();
+    await this.createSubscription();
   }
 
   /**
    * Close the session and disconnect from OPC UA server
    */
   async stop() {
-    logger.info(`Stopping client connected to OPC UA server ${this.endpoint}`);
-
-    if (this.subscription !== undefined) {
-      logger.info('Terminating OPC UA subscription...');
-      await this.subscription.terminate();
-    }
+    logger.info(
+      `${chalk.bgWhite.bold.black(this.endpoint)} \t=> stopping OPC UA client`
+    );
 
     if (this.session !== undefined) {
-      logger.info('Closing OPC UA session...');
       await this.session.close();
+      logger.info(
+        `${chalk.bgWhite.bold.black(this.endpoint)} \t=> session closed`
+      );
     }
 
     if (this.client !== undefined) {
-      logger.info('Disconnecting from OPC UA server...');
       await this.client.disconnect();
+      logger.info(
+        `${chalk.bgWhite.bold.black(this.endpoint)} \t=> disconnected`
+      );
     }
   }
 }
