@@ -185,7 +185,7 @@ class Client {
   async startClient() {
     await this.connect();
     await this.createSession();
-    await this.createSubscription();
+    this.createSubscription();
   }
 
   /**
