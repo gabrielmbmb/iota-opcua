@@ -4,6 +4,7 @@ const {
   MessageSecurityMode,
   SecurityPolicy,
   OPCUAClient,
+  ClientSubscription,
 } = require('node-opcua');
 const logger = require('winston');
 const chalk = require('chalk');
@@ -160,7 +161,10 @@ class Client {
     };
 
     try {
-      this.subscription = this.session.createSubscription2(subscriptionOptions);
+      this.subscription = ClientSubscription.create(
+        this.session,
+        subscriptionOptions
+      );
       logger.info(
         `${chalk.bgWhite.bold.black(this.endpoint)} \t=> subscription created`
       );
@@ -171,17 +175,11 @@ class Client {
     }
 
     // Callbacks for subscription events
-    // this.subscription.on('started', () => {
-    //   logger.info(
-    //     `Subscription has been started in OPC UA server ${this.endpoint}`
-    //   );
-    // });
-
-    // this.subscription.on('terminated', () => {
-    //   logger.info(
-    //     `Subscription has been terminated in OPC UA server ${this.endpoint}`
-    //   );
-    // });
+    this.subscription.on('started', () => {
+      logger.info(
+        `${chalk.bgWhite.bold.black(this.endpoint)} \t=> subscription started`
+      );
+    });
   }
 
   async startClient() {
@@ -197,6 +195,15 @@ class Client {
     logger.info(
       `${chalk.bgWhite.bold.black(this.endpoint)} \t=> stopping OPC UA client`
     );
+
+    if (this.subscription !== undefined) {
+      await this.subscription.terminate();
+      logger.info(
+        `${chalk.bgWhite.bold.black(
+          this.endpoint
+        )} \t=> subscription terminated`
+      );
+    }
 
     if (this.session !== undefined) {
       await this.session.close();
