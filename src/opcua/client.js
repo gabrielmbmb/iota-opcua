@@ -55,9 +55,10 @@ class Client {
       );
     }
 
-    this.credentials = null;
+    this.credentials = credentials;
     if (
-      credentials.username !== undefined &&
+      credentials &&
+      credentials.userName !== undefined &&
       credentials.password !== undefined
     ) {
       this.credentials = credentials;
@@ -67,8 +68,8 @@ class Client {
     if (!this.connectionStrategy) {
       this.connectionStrategy = {
         initialDelay: 1000,
-        maxRetry: 1,
-        maxDelay: 1000,
+        maxRetry: 5,
+        maxDelay: 5 * 1000,
       };
     }
 
