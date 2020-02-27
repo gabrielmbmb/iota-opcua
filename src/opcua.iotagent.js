@@ -1,14 +1,36 @@
 const iotAgentLib = require('iotagent-node-lib');
 const logger = require('winston');
 const async = require('async');
-const chalk = require('chalk');
 const { Client } = require('./opcua/client');
-
-let opcuaClient;
-let opcuaSession;
-let opcuaSubscription;
+const { getOPCUAconnectionParameters } = require('./utils/payload');
+const { config } = require('./services/config.service');
 
 let opcuaClients = {};
+
+/**
+ * Creates a new OPC UA client to connect to an OPC UA with an endpoint. If there is already
+ * a OPC UA client connected to that endpoint, then a new OPC UA client won't be created.
+ *
+ * @param {Object} connectionParameters OPC UA server connection parameters
+ * @param {Function} cb Callback function
+ */
+function createOpcuaClient(connectionParameters, cb) {
+  if (!(connectionParameters.endpoint in opcuaClients)) {
+    const opcuaClient = new Client(
+      connectionParameters.endpoint,
+      connectionParameters.securityMode,
+      connectionParameters.securityPolicy,
+      connectionParameters.credentials
+    );
+
+    try {
+      opcuaClient.startClient();
+      return cb(null, opcuaClient);
+    } catch (err) {
+      return cb(err);
+    }
+  }
+}
 
 /**
  * Stop the OPC UA clients
@@ -30,25 +52,23 @@ async function stopOpcuaClients() {
 function provisionHandler(newDevice, cb) {
   logger.info(`Creating new device: ${JSON.stringify(newDevice)}`);
 
-  const staticAttributes = newDevice['staticAttributes'];
-  let opcuaEndpoint;
+  const internalAttributes = newDevice['internalAttributes'];
+  const connectionParameters = getOPCUAconnectionParameters(internalAttributes);
 
-  if (staticAttributes) {
-    logger.debug(JSON.stringify(staticAttributes));
-    // Check if the device has an OPCUA server specified
-    const opcuaAttr = staticAttributes.find(
-      attr => attr['name'] === 'opcuaEndpoint'
-    );
-    if (opcuaAttr) {
-      opcuaEndpoint = opcuaAttr['value'];
-    }
+  if (Array.isArray(connectionParameters)) {
+    logger.error(connectionParameters.join('\n'));
+    return cb({ message: connectionParameters.join('\n') });
   }
 
-  logger.debug(chalk.red.bold(`OPCUA ENDPOINT: ${opcuaEndpoint}`));
-
-  // Check internal attributes
-
-  return cb(null, newDevice);
+  createOpcuaClient(connectionParameters, function(err, opcuaClient) {
+    if (err) {
+      logger.error(err);
+      return cb({ message: err });
+    } else {
+      opcuaClients[opcuaClient.endpoint] = opcuaClient;
+      return cb(null, newDevice);
+    }
+  });
 }
 
 /**
@@ -74,18 +94,6 @@ function start(newConfig, cb) {
       cb(error);
     } else {
       logger.info('IoT Agent lib has been activated!');
-
-      const opcuaClient = new Client(
-        newConfig.opcua.endpoint,
-        newConfig.opcua.securityMode,
-        newConfig.opcua.securityPolicy,
-        newConfig.opcua.credentials,
-        newConfig.opcua.connectionStrategy
-      );
-
-      opcuaClient.startClient();
-
-      opcuaClients[newConfig.opcua.endpoint] = opcuaClient;
 
       // Set handlers
       iotAgentLib.setProvisioningHandler(provisionHandler);
