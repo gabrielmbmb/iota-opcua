@@ -1,7 +1,5 @@
 const logger = require('winston');
 
-let config;
-
 /**
  *  Sets the configuration of the logger
  *
@@ -66,26 +64,26 @@ function configureLogger(config) {
   });
 }
 
+class Config {
+  setConfig(config) {
+    this.iota = config.iota;
+    this.opcua = config.opcua;
+  }
+}
+
+const config = new Config();
+
 /**
  * Sets the IoT Agent global config
  *
  * @param {Object} newConfig The new IoT Agent config
  */
 function setConfig(newConfig) {
-  config = newConfig;
+  config.setConfig(newConfig);
   configureLogger(newConfig);
-}
-
-/**
- * Gets the IoT Agent global config
- *
- * @returns {Object} The IoT Agent config
- */
-function getConfig() {
-  return config;
 }
 
 module.exports = {
   setConfig,
-  getConfig,
+  config,
 };
