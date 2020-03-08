@@ -20,7 +20,7 @@ const FORBIDDEN_CHARACTERS_TRANSLATION = {
  * @param {String} string
  * @returns {String} String with replaced characters
  */
-function replaceForbidden(string) {
+function replaceForbiddenCharacters(string) {
   var replaced = string;
 
   for (const translation in FORBIDDEN_CHARACTERS_TRANSLATION) {
@@ -34,5 +34,5 @@ function replaceForbidden(string) {
 }
 
 module.exports = {
-  replaceForbidden,
+  replaceForbiddenCharacters,
 };
