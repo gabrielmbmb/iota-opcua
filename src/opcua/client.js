@@ -5,6 +5,8 @@ const {
   SecurityPolicy,
   OPCUAClient,
   ClientSubscription,
+  AttributeIds,
+  TimestampsToReturn,
 } = require('node-opcua');
 const logger = require('winston');
 const chalk = require('chalk');
@@ -107,6 +109,12 @@ class Client {
         `Could not connect to OPC UA server: ${this.endpoint}`
       );
     }
+
+    this.client.on('close', () => {
+      logger.info(
+        `${chalk.bgWhite.bold.black(this.endpoint)} \t=> disconnected`
+      );
+    });
   }
 
   /**
@@ -125,27 +133,31 @@ class Client {
     }
 
     // Callbacks for session events
-    this.client.on('connection_reestablished', () => {
-      logger.info(
-        chalk.bgGreen.bold.black(
-          `${this.endpoint} \t=> connection reestablished`
-        )
-      );
-    });
-
-    this.client.on('backoff', (retry, delay) => {
-      logger.warn(
-        chalk.bgWhite.bold.yellow(
-          `${this.endpoint} \t=> backoff attempt #${retry}. Retrying in ${delay}.`
-        )
-      );
-    });
-
-    this.client.on('start_reconnection', () => {
-      logger.info(
-        chalk.bgGreen.bold.black(`${this.endpont} \t=> starting reconnection`)
-      );
-    });
+    this.client
+      .on('connection_reestablished', () => {
+        logger.info(
+          chalk.bgGreen.bold.black(
+            `${this.endpoint} \t=> connection reestablished`
+          )
+        );
+      })
+      .on('backoff', (retry, delay) => {
+        logger.warn(
+          chalk.bgWhite.bold.yellow(
+            `${this.endpoint} \t=> backoff attempt #${retry}. Retrying in ${delay}.`
+          )
+        );
+      })
+      .on('start_reconnection', () => {
+        logger.info(
+          chalk.bgGreen.bold.black(`${this.endpont} \t=> starting reconnection`)
+        );
+      })
+      .on('close', () => {
+        logger.info(
+          `${chalk.bgWhite.bold.black(this.endpoint)} \t=> session closed`
+        );
+      });
   }
 
   /**
@@ -153,8 +165,7 @@ class Client {
    */
   createSubscription() {
     const subscriptionOptions = {
-      maxNotificationsPerPublish: 10,
-      priority: 10,
+      maxNotificationsPerPublish: 1000,
       publishingEnabled: true,
       requestedLifetimeCount: 1000,
       requestedMaxKeepAliveCount: 12,
@@ -176,17 +187,72 @@ class Client {
     }
 
     // Callbacks for subscription events
-    this.subscription.on('started', () => {
-      logger.info(
-        `${chalk.bgWhite.bold.black(this.endpoint)} \t=> subscription started`
-      );
-    });
+    this.subscription
+      .on('started', id => {
+        logger.info(
+          `${chalk.bgWhite.bold.black(
+            this.endpoint
+          )} \t=> subscription with id ${chalk.cyan(id)} started`
+        );
+      })
+      .on('keepalive', () => {
+        logger.info(
+          `${chalk.bgWhite.bold.black(
+            this.endpoint
+          )} \t=> subscription keepalive`
+        );
+      })
+      .on('terminated', () => {
+        logger.info(
+          `${chalk.bgWhite.bold.black(
+            this.endpoint
+          )} \t=> subscription terminated`
+        );
+      });
   }
 
-  async startClient() {
-    await this.connect();
-    await this.createSession();
-    this.createSubscription();
+  /**
+   * Start monitoring a variable from the OPC UA server
+   *
+   * @param {String} nodeId NodeId of the variable
+   * @param {Function} cb New variable value callback function
+   */
+  startMonitoringItem(nodeId, cb) {
+    const itemToMonitor = {
+      nodeId: nodeId,
+      attributeId: AttributeIds.Value,
+    };
+
+    const parameters = {
+      samplingInterval: 1000,
+      discardOldest: true,
+      queueSize: 100,
+    };
+
+    this.subscription.monitor(
+      itemToMonitor,
+      parameters,
+      TimestampsToReturn.Both,
+      (err, monitoredItem) => {
+        if (err) {
+          cb(err);
+        }
+
+        // Callbacks for monitored items events
+        monitoredItem.on('changed', dataValue => {
+          cb(null, dataValue.value.value);
+        });
+      }
+    );
+  }
+
+  startClient() {
+    return new Promise(async resolve => {
+      await this.connect();
+      await this.createSession();
+      this.createSubscription();
+      resolve();
+    });
   }
 
   /**
@@ -199,25 +265,14 @@ class Client {
 
     if (this.subscription !== undefined) {
       await this.subscription.terminate();
-      logger.info(
-        `${chalk.bgWhite.bold.black(
-          this.endpoint
-        )} \t=> subscription terminated`
-      );
     }
 
     if (this.session !== undefined) {
       await this.session.close();
-      logger.info(
-        `${chalk.bgWhite.bold.black(this.endpoint)} \t=> session closed`
-      );
     }
 
     if (this.client !== undefined) {
       await this.client.disconnect();
-      logger.info(
-        `${chalk.bgWhite.bold.black(this.endpoint)} \t=> disconnected`
-      );
     }
   }
 }

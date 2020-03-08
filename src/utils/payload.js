@@ -67,15 +67,6 @@ function getOPCUAconnectionParameters(internalAttributes) {
   return connectionParameters;
 }
 
-/**
- * Get attributes received in device provisioning payload.
- *
- * @param {*} attributes
- */
-// function getAttributes(attributes) {
-
-// }
-
 module.exports = {
   getOPCUAconnectionParameters,
 };

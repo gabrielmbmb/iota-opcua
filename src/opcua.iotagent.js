@@ -3,7 +3,7 @@ const logger = require('winston');
 const async = require('async');
 const { Client } = require('./opcua/client');
 const { getOPCUAconnectionParameters } = require('./utils/payload');
-const { config } = require('./services/config.service');
+const { replaceForbidden } = require('./utils/characters');
 
 let opcuaClients = {};
 
@@ -14,7 +14,7 @@ let opcuaClients = {};
  * @param {Object} connectionParameters OPC UA server connection parameters
  * @param {Function} cb Callback function
  */
-function createOpcuaClient(connectionParameters, cb) {
+async function createOpcuaClient(connectionParameters, cb) {
   if (!(connectionParameters.endpoint in opcuaClients)) {
     const opcuaClient = new Client(
       connectionParameters.endpoint,
@@ -24,12 +24,15 @@ function createOpcuaClient(connectionParameters, cb) {
     );
 
     try {
-      opcuaClient.startClient();
+      await opcuaClient.startClient();
       return cb(null, opcuaClient);
     } catch (err) {
       return cb(err);
     }
   }
+
+  // There is already a client created for this endpoint
+  return cb(null, opcuaClients[connectionParameters.endpoint]);
 }
 
 /**
@@ -50,9 +53,8 @@ async function stopOpcuaClients() {
  * @param {Function} cb Callback function
  */
 function provisionHandler(newDevice, cb) {
-  logger.info(`Creating new device: ${JSON.stringify(newDevice)}`);
-
   const internalAttributes = newDevice['internalAttributes'];
+  const attributes = newDevice['active'];
   const connectionParameters = getOPCUAconnectionParameters(internalAttributes);
 
   if (Array.isArray(connectionParameters)) {
@@ -60,11 +62,52 @@ function provisionHandler(newDevice, cb) {
     return cb({ message: connectionParameters.join('\n') });
   }
 
+  logger.info(`Creating new device: ${JSON.stringify(newDevice)}`);
+
   createOpcuaClient(connectionParameters, function(err, opcuaClient) {
     if (err) {
       logger.error(err);
       return cb({ message: err });
     } else {
+      // Monitor variables
+      for (const attr of attributes) {
+        const nodeID = replaceForbidden(attr['object_id']);
+        opcuaClient.startMonitoringItem(nodeID, (err, newValue) => {
+          if (err) {
+            logger.error(
+              `Could not start monitoring variable ${nodeID}. Error: ${err}`
+            );
+          }
+
+          const values = [
+            {
+              name: attr.name,
+              type: attr.type,
+              value: newValue.toString(),
+            },
+          ];
+
+          // Update entity in OCB with new value
+          iotAgentLib.update(
+            newDevice.name,
+            newDevice.type,
+            '',
+            values,
+            newDevice,
+            function(err) {
+              if (err) {
+                logger.error(
+                  `An error has ocurred updating entity ${
+                    newDevice.name
+                  }. Error: ${JSON.stringify(err)}`
+                );
+              } else {
+                logger.debug(`Entity ${newDevice.name} has been updated`);
+              }
+            }
+          );
+        });
+      }
       opcuaClients[opcuaClient.endpoint] = opcuaClient;
       return cb(null, newDevice);
     }
@@ -100,7 +143,22 @@ function start(newConfig, cb) {
       iotAgentLib.setRemoveDeviceHandler(removeDeviceHandler);
 
       // Set update middlewares
-      iotAgentLib.addUpdateMiddleware();
+      iotAgentLib.addUpdateMiddleware(
+        iotAgentLib.dataPlugins.compressTimestamp.update
+      );
+      iotAgentLib.addUpdateMiddleware(
+        iotAgentLib.dataPlugins.attributeAlias.update
+      );
+      iotAgentLib.addUpdateMiddleware(iotAgentLib.dataPlugins.addEvents.update);
+      iotAgentLib.addUpdateMiddleware(
+        iotAgentLib.dataPlugins.timestampProcess.update
+      );
+      iotAgentLib.addUpdateMiddleware(
+        iotAgentLib.dataPlugins.expressionTransformation.update
+      );
+      iotAgentLib.addUpdateMiddleware(
+        iotAgentLib.dataPlugins.multiEntity.update
+      );
 
       // Load types, services and devices
       async.waterfall([], () => {});
