@@ -3,7 +3,7 @@ const logger = require('winston');
 const async = require('async');
 const { Client } = require('./opcua/client');
 const { getOPCUAconnectionParameters } = require('./utils/payload');
-const { replaceForbidden } = require('./utils/characters');
+const { replaceForbiddenCharacters } = require('./utils/characters');
 
 let opcuaClients = {};
 
@@ -71,7 +71,7 @@ function provisionHandler(newDevice, cb) {
     } else {
       // Monitor variables
       for (const attr of attributes) {
-        const nodeID = replaceForbidden(attr['object_id']);
+        const nodeID = replaceForbiddenCharacters(attr['object_id']);
         opcuaClient.startMonitoringItem(nodeID, (err, newValue) => {
           if (err) {
             logger.error(
@@ -121,7 +121,17 @@ function provisionHandler(newDevice, cb) {
  * @param {Function} cb Callback function
  */
 function removeDeviceHandler(device, cb) {
+  const attributes = device['active'];
+  const opcuaClient = opcuaClients[device.internalAttributes.opcuaEndpoint];
+
   logger.info(`Removing device: ${JSON.stringify(device)}`);
+
+  for (const attr of attributes) {
+    const nodeId = replaceForbiddenCharacters(attr['object_id']);
+    opcuaClient.stopMonitoringItem(nodeId);
+  }
+
+  return cb(null, device);
 }
 
 /**

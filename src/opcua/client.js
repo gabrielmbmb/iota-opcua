@@ -20,6 +20,8 @@ const {
 } = require('./errors');
 
 class Client {
+  monitoredItems = {};
+
   /**
    * Create an OPC UA client to stablish a communication with the OPC UA server
    *
@@ -28,6 +30,7 @@ class Client {
    * @param {String} securityPolicy The OPC UA server security policy
    * @param {{username: String, password: String}} credentials The credentials for the session if securityPolicy is 'Sign' or 'SignAndEncrypt'
    * @param {{initialDelay: Number, maxRetry: Number, maxDelay: Number}} connectionStrategy
+   * @throws {OPCUASecurityModeError, OPCUASecurityPolicyError}
    */
   constructor(
     endpoint,
@@ -37,7 +40,6 @@ class Client {
     connectionStrategy
   ) {
     this.endpoint = endpoint;
-    console.log(this.endpoint);
 
     this.securityMode = coerceMessageSecurityMode(securityMode);
     if (this.securityMode === MessageSecurityMode.Invalid) {
@@ -99,6 +101,9 @@ class Client {
 
   /**
    * Connect to the OPC UA server
+   *
+   * @async
+   * @throws {OPCUAConnectionError}
    */
   async connect() {
     try {
@@ -119,6 +124,9 @@ class Client {
 
   /**
    * Create a session in OPC UA server
+   *
+   * @async
+   * @throws {OPCUASessionError}
    */
   async createSession() {
     try {
@@ -161,7 +169,9 @@ class Client {
   }
 
   /**
-   * Create a subscription to the OPC UA server
+   * Create a subscription in the OPC UA server
+   *
+   * @throws {OPCUASubscriptionError}
    */
   createSubscription() {
     const subscriptionOptions = {
@@ -238,6 +248,9 @@ class Client {
           cb(err);
         }
 
+        // Add to monitoredItems object, so the monitoring can be ended later
+        this.monitoredItems[nodeId] = monitoredItem;
+
         // Callbacks for monitored items events
         monitoredItem.on('changed', dataValue => {
           cb(null, dataValue.value.value);
@@ -246,6 +259,37 @@ class Client {
     );
   }
 
+  /**
+   * Stop monitoring a variable from the OPC UA server
+   *
+   * @param {String} nodeId NodeId of the variable
+   */
+  stopMonitoringItem(nodeId) {
+    if (this.monitoredItems[nodeId]) {
+      this.monitoredItems[nodeId].terminate(err => {
+        if (err) {
+          logger.error(
+            `An error has ocurred terminating monitoring of ${nodeId}. Error: ${JSON.stringify(
+              err
+            )}`
+          );
+        }
+
+        this.monitoredItems[nodeId] = null;
+        logger.info(
+          `${chalk.bgWhite.bold.black(
+            this.endpoint
+          )} \t=> monitoring ${nodeId} terminated`
+        );
+      });
+    }
+  }
+
+  /**
+   * Start the OPC UA client
+   *
+   * @returns {Promise} Resolved when the client has terminated the start process.
+   */
   startClient() {
     return new Promise(async resolve => {
       await this.connect();
@@ -257,6 +301,8 @@ class Client {
 
   /**
    * Close the session and disconnect from OPC UA server
+   *
+   * @async
    */
   async stop() {
     logger.info(
