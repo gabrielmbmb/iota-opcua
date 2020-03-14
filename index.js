@@ -12,7 +12,10 @@ function main() {
     } else {
       logger.info('OPC UA IoT Agent started');
       process.on('SIGINT', () => {
-        iotAgentOPCUA.stop();
+        iotAgentOPCUA.stop(() => {
+          logger.info('OPC UA IoT Agent has been stopped!');
+          process.exit(0);
+        });
       });
     }
   });

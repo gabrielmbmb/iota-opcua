@@ -38,12 +38,15 @@ async function createOpcuaClient(connectionParameters, cb) {
 /**
  * Stop the OPC UA clients
  *
+ * @param {Function} cb Callback function
  * @async
  */
-async function stopOpcuaClients() {
+async function stopOpcuaClients(cb) {
   for (endpoint in opcuaClients) {
     await opcuaClients[endpoint].stop();
   }
+
+  return cb();
 }
 
 /**
@@ -135,6 +138,28 @@ function removeDeviceHandler(device, cb) {
 }
 
 /**
+ * Load devices previously created from registry.
+ *
+ * @param {Function} cb Callback function
+ */
+function loadDevices(cb) {
+  logger.info('Loading devices from registry');
+  iotAgentLib.listDevices((err, devices) => {
+    if (err) {
+      return cb(err);
+    } else {
+      async.eachSeries(devices.devices, provisionHandler, err => {
+        if (err) {
+          return cb(err);
+        }
+
+        return cb();
+      });
+    }
+  });
+}
+
+/**
  * Start the OPC UA IoT Agent with the given configuration.
  *
  * @async
@@ -144,7 +169,7 @@ function removeDeviceHandler(device, cb) {
 function start(newConfig, cb) {
   iotAgentLib.activate(newConfig.iota, error => {
     if (error) {
-      cb(error);
+      cb(JSON.stringify(error));
     } else {
       logger.info('IoT Agent lib has been activated!');
 
@@ -171,7 +196,13 @@ function start(newConfig, cb) {
       );
 
       // Load types, services and devices
-      async.waterfall([], () => {});
+      async.waterfall([loadDevices], err => {
+        if (err) {
+          return cb(err);
+        }
+      });
+
+      // No errors, OPC UA agent started
       cb();
     }
   });
@@ -179,13 +210,16 @@ function start(newConfig, cb) {
 
 /**
  * Stop the OPC UA IoT Agent
+ *
+ * @param {Function} cb Callback function
  */
-function stop() {
+function stop(cb) {
   logger.info('Stopping the OPC UA IoT Agent...');
   async.series(
     [stopOpcuaClients, iotAgentLib.resetMiddlewares, iotAgentLib.deactivate],
     () => {
-      logger.info('OPC UA IoT Agent has been stopped!');
+      opcuaClients = {};
+      return cb();
     }
   );
 }
