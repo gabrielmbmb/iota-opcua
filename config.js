@@ -47,24 +47,24 @@ config.iota = {
    *             from the 'mongodb' configuration property.
    */
   deviceRegistry: {
-    type: 'memory',
+    type: 'mongodb',
     /**
      * Mongo DB configuration. This section will only be used if the deviceRegistry is 'mongodb'.
      */
-    mongodb: {
-      /**
-       * Host where the MongoDB instance is located.
-       */
-      host: 'localhost',
-      /**
-       * Port where the MongoDB instance is listening.
-       */
-      port: '27017',
-      /**
-       * Name of MongoDB where the IoT Agent data will be stored.
-       */
-      db: 'iotagentopcua',
-    },
+  },
+  mongodb: {
+    /**
+     * Host where the MongoDB instance is located.
+     */
+    host: 'localhost',
+    /**
+     * Port where the MongoDB instance is listening.
+     */
+    port: '27017',
+    /**
+     * Name of MongoDB where the IoT Agent data will be stored.
+     */
+    db: 'iotagentopcua',
   },
   /**
    *  Types array for static configuration of services. Check documentation in the IoTAgent Library for Node.js for
