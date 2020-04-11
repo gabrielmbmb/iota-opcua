@@ -21,14 +21,14 @@ const FORBIDDEN_CHARACTERS_TRANSLATION = {
  * @returns {String} String with replaced characters
  */
 function replaceForbiddenCharacters(string) {
-  var replaced = string;
+  let replaced = string;
 
-  for (const translation in FORBIDDEN_CHARACTERS_TRANSLATION) {
+  FORBIDDEN_CHARACTERS_TRANSLATION.forEach(translation => {
     replaced = replaced.replace(
       new RegExp(translation, 'g'),
       FORBIDDEN_CHARACTERS_TRANSLATION[translation]
     );
-  }
+  });
 
   return replaced;
 }

@@ -42,9 +42,9 @@ async function createOpcuaClient(connectionParameters, cb) {
  * @async
  */
 async function stopOpcuaClients(cb) {
-  for (endpoint in opcuaClients) {
+  Object.keys(opcuaClients).forEach(async endpoint => {
     await opcuaClients[endpoint].stop();
-  }
+  });
 
   return cb();
 }
@@ -56,8 +56,8 @@ async function stopOpcuaClients(cb) {
  * @param {Function} cb Callback function
  */
 function provisionHandler(newDevice, cb) {
-  const internalAttributes = newDevice['internalAttributes'];
-  const attributes = newDevice['active'];
+  const { internalAttributes } = newDevice;
+  const attributes = newDevice.active;
   const connectionParameters = getOPCUAconnectionParameters(internalAttributes);
 
   if (Array.isArray(connectionParameters)) {
@@ -67,53 +67,52 @@ function provisionHandler(newDevice, cb) {
 
   logger.info(`Creating new device: ${JSON.stringify(newDevice)}`);
 
-  createOpcuaClient(connectionParameters, function(err, opcuaClient) {
+  return createOpcuaClient(connectionParameters, (err, opcuaClient) => {
     if (err) {
       logger.error(err);
       return cb({ message: err });
-    } else {
-      // Monitor variables
-      for (const attr of attributes) {
-        const nodeID = replaceForbiddenCharacters(attr['object_id']);
-        opcuaClient.startMonitoringItem(nodeID, (err, newValue) => {
-          if (err) {
-            logger.error(
-              `Could not start monitoring variable ${nodeID}. Error: ${err}`
-            );
-          }
-
-          const values = [
-            {
-              name: attr.name,
-              type: attr.type,
-              value: newValue.toString(),
-            },
-          ];
-
-          // Update entity in OCB with new value
-          iotAgentLib.update(
-            newDevice.name,
-            newDevice.type,
-            '',
-            values,
-            newDevice,
-            function(err) {
-              if (err) {
-                logger.error(
-                  `An error has ocurred updating entity ${
-                    newDevice.name
-                  }. Error: ${JSON.stringify(err)}`
-                );
-              } else {
-                logger.debug(`Entity ${newDevice.name} has been updated`);
-              }
-            }
-          );
-        });
-      }
-      opcuaClients[opcuaClient.endpoint] = opcuaClient;
-      return cb(null, newDevice);
     }
+    // Monitor variables
+    attributes.forEach(attr => {
+      const nodeID = replaceForbiddenCharacters(attr.object_id);
+      opcuaClient.startMonitoringItem(nodeID, (error, newValue) => {
+        if (error) {
+          logger.error(
+            `Could not start monitoring variable ${nodeID}. Error: ${error}`
+          );
+        }
+
+        const values = [
+          {
+            name: attr.name,
+            type: attr.type,
+            value: newValue.toString(),
+          },
+        ];
+
+        // Update entity in OCB with new value
+        iotAgentLib.update(
+          newDevice.name,
+          newDevice.type,
+          '',
+          values,
+          newDevice,
+          updateErr => {
+            if (updateErr) {
+              logger.error(
+                `An error has ocurred updating entity ${
+                  newDevice.name
+                }. Error: ${JSON.stringify(updateErr)}`
+              );
+            } else {
+              logger.debug(`Entity ${newDevice.name} has been updated`);
+            }
+          }
+        );
+      });
+    });
+    opcuaClients[opcuaClient.endpoint] = opcuaClient;
+    return cb(null, newDevice);
   });
 }
 
@@ -124,15 +123,15 @@ function provisionHandler(newDevice, cb) {
  * @param {Function} cb Callback function
  */
 function removeDeviceHandler(device, cb) {
-  const attributes = device['active'];
+  const attributes = device.active;
   const opcuaClient = opcuaClients[device.internalAttributes.opcuaEndpoint];
 
   logger.info(`Removing device: ${JSON.stringify(device)}`);
 
-  for (const attr of attributes) {
-    const nodeId = replaceForbiddenCharacters(attr['object_id']);
+  attributes.forEach(attr => {
+    const nodeId = replaceForbiddenCharacters(attr.object_id);
     opcuaClient.stopMonitoringItem(nodeId);
-  }
+  });
 
   return cb(null, device);
 }
@@ -147,15 +146,14 @@ function loadDevices(cb) {
   iotAgentLib.listDevices((err, devices) => {
     if (err) {
       return cb(err);
-    } else {
-      async.eachSeries(devices.devices, provisionHandler, err => {
-        if (err) {
-          return cb(err);
-        }
-
-        return cb();
-      });
     }
+    return async.eachSeries(devices.devices, provisionHandler, error => {
+      if (error) {
+        return cb(error);
+      }
+
+      return cb();
+    });
   });
 }
 
@@ -200,6 +198,7 @@ function start(newConfig, cb) {
         if (err) {
           return cb(err);
         }
+        return cb();
       });
 
       // No errors, OPC UA agent started

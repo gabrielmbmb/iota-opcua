@@ -1,3 +1,4 @@
+/* eslint no-param-reassign: 0 */
 const logger = require('winston');
 
 /**
@@ -60,7 +61,7 @@ function configureLogger(config) {
   // Configure logger
   logger.configure({
     level: config.iota.logLevel.toLowerCase(),
-    transports: transports,
+    transports,
   });
 }
 

@@ -17,17 +17,17 @@ function getOPCUAconnectionParameters(internalAttributes) {
   const errors = [];
 
   // Check that all connection parameters are provided (except credentials which is optional)
-  for (const attr in spectedParameters) {
+  spectedParameters.forEach(attr => {
     if (!internalAttributes[attr] && attr !== 'opcuaCredentials') {
       errors.push(`${attr} was spected but it was not provided!`);
     } else {
       connectionParameters[spectedParameters[attr]] = internalAttributes[attr];
     }
-  }
+  });
 
   // Check if securityMode is valid
   const possibleSecurityModes = Object.values(MessageSecurityMode);
-  if (!connectionParameters['securityMode'] in possibleSecurityModes) {
+  if (!(connectionParameters.securityMode in possibleSecurityModes)) {
     errors.push(
       `Security Mode provided is not valid. Possible values: ${possibleSecurityModes}`
     );
@@ -35,7 +35,7 @@ function getOPCUAconnectionParameters(internalAttributes) {
 
   // Check if securityPolicy is valid
   const possibleSecurityPolicies = Object.values(SecurityPolicy);
-  if (!connectionParameters['securityPolicy'] in possibleSecurityPolicies) {
+  if (!(connectionParameters.securityPolicy in possibleSecurityPolicies)) {
     errors.push(
       `Security Policy provided is not valid. Possible values: ${possibleSecurityPolicies}`
     );
@@ -43,18 +43,18 @@ function getOPCUAconnectionParameters(internalAttributes) {
 
   // Check if credentials are provided, if the securityMode is 'Sign' or 'SignAndEncrypt'
   if (
-    connectionParameters['securityMode'] === 'Sign' ||
-    connectionParameters['securityMode'] === 'SignAndEncrypt'
+    connectionParameters.securityMode === 'Sign' ||
+    connectionParameters.securityMode === 'SignAndEncrypt'
   ) {
-    if (!connectionParameters['credentials']) {
+    if (!connectionParameters.credentials) {
       errors.push(
-        `Security Mode was ${connectionParameters['securityMode']} but credentials were not provided!`
+        `Security Mode was ${connectionParameters.securityMode} but credentials were not provided!`
       );
     } else {
-      if (!connectionParameters['credentials'].userName) {
+      if (!connectionParameters.credentials.userName) {
         errors.push('credentials object has not key "userName"');
       }
-      if (!connectionParameters['credentials'].password) {
+      if (!connectionParameters.credentials.password) {
         errors.push('credentials object has not key "password"');
       }
     }

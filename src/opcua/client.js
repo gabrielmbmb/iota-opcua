@@ -20,8 +20,6 @@ const {
 } = require('./errors');
 
 class Client {
-  monitoredItems = {};
-
   /**
    * Create an OPC UA client to stablish a communication with the OPC UA server
    *
@@ -97,6 +95,7 @@ class Client {
     };
 
     this.client = OPCUAClient.create(this.opcuaConnectionOptions);
+    this.monitoredItems = {};
   }
 
   /**
@@ -109,9 +108,9 @@ class Client {
     try {
       await this.client.connect(this.endpoint);
       logger.info(`${chalk.bgWhite.bold.black(this.endpoint)} \t=> connected`);
-    } catch {
+    } catch (e) {
       throw new OPCUAConnectionError(
-        `Could not connect to OPC UA server: ${this.endpoint}`
+        `Could not connect to OPC UA server ${this.endpoint}. Error: ${e}`
       );
     }
 
@@ -134,9 +133,9 @@ class Client {
       logger.info(
         `${chalk.bgWhite.bold.black(this.endpoint)} \t=> session created`
       );
-    } catch {
+    } catch (e) {
       throw new OPCUASessionError(
-        `Could not create a session in OPC UA server: ${this.endpoint}`
+        `Could not create a session in OPC UA server ${this.endpoint}. Error: ${e}`
       );
     }
 
@@ -190,9 +189,9 @@ class Client {
       logger.info(
         `${chalk.bgWhite.bold.black(this.endpoint)} \t=> subscription created`
       );
-    } catch {
+    } catch (e) {
       throw new OPCUASubscriptionError(
-        `Could not create a subscription in OPC UA server: ${this.endpoint}`
+        `Could not create a subscription in OPC UA server ${this.endpoint}. Error: ${e}`
       );
     }
 
@@ -229,7 +228,7 @@ class Client {
    */
   startMonitoringItem(nodeId, cb) {
     const itemToMonitor = {
-      nodeId: nodeId,
+      nodeId,
       attributeId: AttributeIds.Value,
     };
 
@@ -295,7 +294,7 @@ class Client {
       await this.connect();
       await this.createSession();
       this.createSubscription();
-      resolve();
+      return resolve();
     });
   }
 
