@@ -23,7 +23,7 @@ const FORBIDDEN_CHARACTERS_TRANSLATION = {
 function replaceForbiddenCharacters(string) {
   let replaced = string;
 
-  FORBIDDEN_CHARACTERS_TRANSLATION.forEach(translation => {
+  Object.keys(FORBIDDEN_CHARACTERS_TRANSLATION).forEach(translation => {
     replaced = replaced.replace(
       new RegExp(translation, 'g'),
       FORBIDDEN_CHARACTERS_TRANSLATION[translation]

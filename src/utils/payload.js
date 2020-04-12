@@ -17,7 +17,7 @@ function getOPCUAconnectionParameters(internalAttributes) {
   const errors = [];
 
   // Check that all connection parameters are provided (except credentials which is optional)
-  spectedParameters.forEach(attr => {
+  Object.keys(spectedParameters).forEach(attr => {
     if (!internalAttributes[attr] && attr !== 'opcuaCredentials') {
       errors.push(`${attr} was spected but it was not provided!`);
     } else {
@@ -27,15 +27,15 @@ function getOPCUAconnectionParameters(internalAttributes) {
 
   // Check if securityMode is valid
   const possibleSecurityModes = Object.values(MessageSecurityMode);
-  if (!(connectionParameters.securityMode in possibleSecurityModes)) {
+  if (!possibleSecurityModes.includes(connectionParameters.securityMode)) {
     errors.push(
       `Security Mode provided is not valid. Possible values: ${possibleSecurityModes}`
     );
   }
 
   // Check if securityPolicy is valid
-  const possibleSecurityPolicies = Object.values(SecurityPolicy);
-  if (!(connectionParameters.securityPolicy in possibleSecurityPolicies)) {
+  const possibleSecurityPolicies = Object.keys(SecurityPolicy);
+  if (!possibleSecurityPolicies.includes(connectionParameters.securityPolicy)) {
     errors.push(
       `Security Policy provided is not valid. Possible values: ${possibleSecurityPolicies}`
     );

@@ -200,9 +200,6 @@ function start(newConfig, cb) {
         }
         return cb();
       });
-
-      // No errors, OPC UA agent started
-      cb();
     }
   });
 }
