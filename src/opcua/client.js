@@ -172,7 +172,7 @@ class Client {
    *
    * @throws {OPCUASubscriptionError}
    */
-  createSubscription() {
+  async createSubscription() {
     const subscriptionOptions = {
       maxNotificationsPerPublish: 1000,
       publishingEnabled: true,
@@ -289,11 +289,11 @@ class Client {
    *
    * @returns {Promise} Resolved when the client has terminated the start process.
    */
-  startClient() {
+  async startClient() {
     return new Promise(async resolve => {
       await this.connect();
       await this.createSession();
-      this.createSubscription();
+      await this.createSubscription();
       return resolve();
     });
   }
@@ -303,22 +303,26 @@ class Client {
    *
    * @async
    */
-  async stop() {
+  stop() {
     logger.info(
       `${chalk.bgWhite.bold.black(this.endpoint)} \t=> stopping OPC UA client`
     );
+    return new Promise(async resolve => {
+      const promises = [];
+      if (this.subscription !== undefined) {
+        promises.push(this.subscription.terminate());
+      }
 
-    if (this.subscription !== undefined) {
-      await this.subscription.terminate();
-    }
+      if (this.session !== undefined) {
+        promises.push(this.session.close());
+      }
 
-    if (this.session !== undefined) {
-      await this.session.close();
-    }
-
-    if (this.client !== undefined) {
-      await this.client.disconnect();
-    }
+      if (this.client !== undefined) {
+        promises.push(this.client.disconnect());
+      }
+      await Promise.all(promises);
+      return resolve();
+    });
   }
 }
 

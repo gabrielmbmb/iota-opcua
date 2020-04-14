@@ -13,6 +13,7 @@ let opcuaClients = {};
  *
  * @param {Object} connectionParameters OPC UA server connection parameters
  * @param {Function} cb Callback function
+ * @async
  */
 async function createOpcuaClient(connectionParameters, cb) {
   if (!(connectionParameters.endpoint in opcuaClients)) {
@@ -39,13 +40,12 @@ async function createOpcuaClient(connectionParameters, cb) {
  * Stop the OPC UA clients
  *
  * @param {Function} cb Callback function
- * @async
  */
 async function stopOpcuaClients(cb) {
-  Object.keys(opcuaClients).forEach(async endpoint => {
-    await opcuaClients[endpoint].stop();
+  const promises = Object.keys(opcuaClients).map(endpoint => {
+    return opcuaClients[endpoint].stop();
   });
-
+  await Promise.all(promises);
   return cb();
 }
 
