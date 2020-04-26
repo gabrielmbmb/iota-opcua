@@ -15,6 +15,7 @@ The official can be found here_.
 Contents
 ========
 * Background_
+* Features_
 * Install_
 * Usage_
 
@@ -23,6 +24,19 @@ Contents
 
 Background
 ==========
+
+.. _Features:
+
+Features
+========
+
+- [X] Create connection with OPC UA server dinamically via API
+- [X] Load devices from registry
+- [ ] Create devices from configuration file
+- [X] Create devices via API
+- [X] Attribute automatic update in Orion Context Broker (active attribute)
+- [ ] Attribute request update from Orion Context Broker (lazy attribute)
+- [ ] Execute method in OPC UA Server requested by Orion Context Broker
 
 .. _Install:
 
