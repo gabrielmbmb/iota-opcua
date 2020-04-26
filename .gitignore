@@ -114,3 +114,6 @@ dist
 
 # logs
 logs/
+
+# ignore certificate directory
+pki/
