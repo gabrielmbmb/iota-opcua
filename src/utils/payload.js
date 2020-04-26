@@ -7,7 +7,7 @@ const { MessageSecurityMode, SecurityPolicy } = require('node-opcua');
  * @returns {Object | Error} OPC UA connection parameters or an array which contains found errors
  */
 function getOPCUAconnectionParameters(internalAttributes) {
-  const spectedParameters = {
+  const expectedParameters = {
     opcuaEndpoint: 'endpoint',
     opcuaSecurityMode: 'securityMode',
     opcuaSecurityPolicy: 'securityPolicy',
@@ -16,12 +16,18 @@ function getOPCUAconnectionParameters(internalAttributes) {
   const connectionParameters = {};
   const errors = [];
 
+  // Check if internalAttributes is undefined
+  if (!internalAttributes) {
+    errors.push(`internalAttributes can't be empty!'`);
+    return errors;
+  }
+
   // Check that all connection parameters are provided (except credentials which is optional)
-  Object.keys(spectedParameters).forEach(attr => {
+  Object.keys(expectedParameters).forEach(attr => {
     if (!internalAttributes[attr] && attr !== 'opcuaCredentials') {
-      errors.push(`${attr} was spected but it was not provided!`);
+      errors.push(`${attr} was expected but it was not provided!`);
     } else {
-      connectionParameters[spectedParameters[attr]] = internalAttributes[attr];
+      connectionParameters[expectedParameters[attr]] = internalAttributes[attr];
     }
   });
 

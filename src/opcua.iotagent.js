@@ -60,6 +60,7 @@ function provisionHandler(newDevice, cb) {
   const attributes = newDevice.active;
   const connectionParameters = getOPCUAconnectionParameters(internalAttributes);
 
+  // Check if connectionParameters is an array of strings with errors
   if (Array.isArray(connectionParameters)) {
     logger.error(connectionParameters.join('\n'));
     return cb({ message: connectionParameters.join('\n') });
