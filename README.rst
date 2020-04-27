@@ -1,6 +1,9 @@
 ================
 OPC UA IoT Agent
 ================
+
+|travis-badge|
+
 Bridge between the NGSI and OPC UA protocols. This agent allows the
 communication with a device that implements an OPC UA server, making possible
 to read data and dump it to the Orion Context Broker as well as sending
@@ -11,6 +14,9 @@ commands to the device.
 The official can be found here_.
 
 .. _here: https://github.com/Engineering-Research-and-Development/iotagent-opcua
+.. |travis-badge| image:: https://travis-ci.com/gabrielmbmb/iota-opcua.svg?token=Ym8dypMsw2NFNbxtSMrV&branch=master
+    :target: https://travis-ci.com/gabrielmbmb/iota-opcua
+
 
 Contents
 ========
