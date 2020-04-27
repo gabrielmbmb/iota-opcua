@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "agent": "node --no-deprecation index.js",
-    "test": "./node_modules/mocha/bin/mocha --recursive",
+    "test": "./node_modules/mocha/bin/mocha --recursive --timeout 5000 --exit",
     "coverage": "nyc report --reporter=text-lcov > coverage.lcov && codecov"
   },
   "repository": {
