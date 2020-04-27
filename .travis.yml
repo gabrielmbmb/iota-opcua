@@ -10,7 +10,6 @@ before_install:
   - docker run -d --network host -l orion fiware/orion:latest
   - docker pull gmartindev/opcua-test-server:latest
   - docker run -d --network host -l opcua-test-server gmartindev/opcua-test-server
-  - npm update
 
 install:
   - npm install
