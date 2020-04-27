@@ -1,0 +1,20 @@
+sudo: required
+language: node_js
+
+services:
+  - docker
+  - mongodb
+
+before_install:
+  - docker pull fiware/orion:latest
+  - docker run -d --network host -l orion fiware/orion:latest
+  - docker pull gmartindev/opcua-test-server:latest
+  - docker run -d --network host -l opcua-test-server gmartindev/opcua-test-server
+  - npm update
+
+install:
+  - npm install
+
+after_script:
+  - npm run coverage
+  - npm run codecov
