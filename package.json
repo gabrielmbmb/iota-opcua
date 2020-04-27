@@ -4,9 +4,9 @@
   "description": "Bridge between NGSI and OPC UA protocols",
   "main": "index.js",
   "scripts": {
-    "agent": "node --no-deprecation index.js",
     "test": "./node_modules/mocha/bin/mocha --recursive --timeout 5000 --exit",
-    "coverage": "nyc report --reporter=text-lcov > coverage.lcov && codecov"
+    "coverage": "nyc npm run test",
+    "codecov": "nyc report --reporter=text-lcov > coverage.lcov && codecov"
   },
   "repository": {
     "type": "git",
