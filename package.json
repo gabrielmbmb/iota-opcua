@@ -6,7 +6,7 @@
   "scripts": {
     "test": "./node_modules/mocha/bin/mocha --recursive --timeout 5000 --exit",
     "coverage": "nyc npm run test",
-    "codecov": "nyc report --reporter=text-lcov > coverage.lcov && codecov"
+    "codecov": "nyc report --reporter=text-lcov > coverage.lcov && codecov --disable=gcov"
   },
   "repository": {
     "type": "git",
