@@ -1,21 +1,21 @@
 sudo: required
 language: node_js
 node_js:
-  - 13
+- 13
+env:
+  global:
+    secure: hA8iU7Wdr2RTZgIXASnYcTG4ah1IkCUf3HjYC0ra1ImtwClFDulTIGRKEeo+Syivv3Lm5ba8fUUwHB+KDdj11ttWDA/5V32dtrkG2YzFI+jHJB4c7gS5Vt9F+ryXex0yorwNnjHfNtS2O+VAgTDq5x/Zjq/tORivm/U274e1qxLQ9TyvjZGiMx01FOzOppw1z5K3A+6pFBt06iiXaSqzsi4LZfJYGFPIrXSlxlqx9ngzKTozofmFZkxx3QNhRWHI6y9PNfNAU8/fxseO2lPV5npZEDkpikJE8GyAD3ZTPAmyyjy3C2nTaok6QNntUGwxHDNX6e/mywsaYIxarIJSsVRxik5jVyUOhGsCa851VpDOU5/Pg8+g4KObYz3E0tZb76Uov4oDF4CqmdDFpa5NfXvKdq9QPR7MmqPV2dt6+sN9Bz9rrBm1IX0nwEYwwfE0R+RBp/Nqc5zDIObH5Hc6Abpjf/SI2nPT8FOJREiLhG3UbnsVAR9Q4h5HwrDA/ojXTQS+PlsoKmvFWn0UCR9sryUj0ABMRBmx0csccbj9kXsYLz5eZtovTG/9KazpPVd54GuGumf1JcoSDoobntmrAINgG2onAEvYTT+X7DDFMFnqTqYpMbj1WBO0lGcvAfOcCvMdQY20BG+MAMHbFlJEMZGqupoUYcWb3PqUkLCJJ+A=
 
 services:
-  - docker
-  - mongodb
-
+- docker
+- mongodb
 before_install:
-  - docker pull fiware/orion:latest
-  - docker run -d --network host -l orion fiware/orion:latest
-  - docker pull gmartindev/opcua-test-server:latest
-  - docker run -d --network host -l opcua-test-server gmartindev/opcua-test-server
-
+- docker pull fiware/orion:latest
+- docker run -d --network host -l orion fiware/orion:latest
+- docker pull gmartindev/opcua-test-server:latest
+- docker run -d --network host -l opcua-test-server gmartindev/opcua-test-server
 install:
-  - npm install
-
+- npm install
 after_script:
-  - npm run coverage
-  - npm run codecov
+- npm run coverage
+- npm run codecov
