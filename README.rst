@@ -2,7 +2,7 @@
 OPC UA IoT Agent
 ================
 
-|travis-badge|
+|travis-badge| |codecov-badge|
 
 Bridge between the NGSI and OPC UA protocols. This agent allows the
 communication with a device that implements an OPC UA server, making possible
@@ -16,7 +16,8 @@ The official can be found here_.
 .. _here: https://github.com/Engineering-Research-and-Development/iotagent-opcua
 .. |travis-badge| image:: https://travis-ci.com/gabrielmbmb/iota-opcua.svg?token=Ym8dypMsw2NFNbxtSMrV&branch=master
     :target: https://travis-ci.com/gabrielmbmb/iota-opcua
-
+.. |codecov-badge| image:: https://codecov.io/gh/gabrielmbmb/iota-opcua/branch/master/graph/badge.svg?token=e4Gw0zL3iN
+  :target: https://codecov.io/gh/gabrielmbmb/iota-opcua
 
 Contents
 ========
