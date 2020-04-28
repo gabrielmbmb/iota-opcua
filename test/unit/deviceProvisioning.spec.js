@@ -3,6 +3,7 @@ const async = require('async');
 const { should, expect } = require('chai');
 const iotAgentOPCUA = require('../../src/opcua.iotagent');
 const config = require('../test-config');
+const configService = require('../../src/services/config.service');
 
 // Test payloads
 const noInternalAttributes = require('../json/no_internal_attributes_device.json');
@@ -50,6 +51,8 @@ const optionsOCB = {
 };
 
 describe('Device provisioning API', function() {
+  configService.setConfig(config);
+
   before(function(done) {
     async.series([async.apply(iotAgentOPCUA.start, config)], done);
   });
