@@ -1,0 +1,46 @@
+{
+  "devices": [
+    {
+      "device_id": "TestDevice",
+      "entity_name": "urn:ngsi-ld:TestEntity:001",
+      "entity_type": "TEST",
+      "attributes": [
+        {
+          "object_id": "ns&eq1&scs&eqFanSpeed",
+          "name": "FanSpeed",
+          "type": "Float"
+        }
+      ],
+      "internal_attributes": {
+        "opcuaEndpoint": "opc.tcp://localhost:5001/UA/test",
+        "opcuaSecurityMode": "SignAndEncrypt",
+        "opcuaSecurityPolicy": "Basic256",
+        "opcuaCredentials": {
+          "userName": "user1",
+          "password": "pass1"
+        }
+      }
+    },
+    {
+      "device_id": "TestDevice2",
+      "entity_name": "urn:ngsi-ld:TestEntity:002",
+      "entity_type": "TEST",
+      "attributes": [
+        {
+          "object_id": "ns&eq1&scs&eqFanSpeed",
+          "name": "FanSpeed",
+          "type": "Float"
+        }
+      ],
+      "internal_attributes": {
+        "opcuaEndpoint": "opc.tcp://localhost:5001/UA/test",
+        "opcuaSecurityMode": "SignAndEncrypt",
+        "opcuaSecurityPolicy": "Basic256",
+        "opcuaCredentials": {
+          "userName": "user1",
+          "password": "pass1"
+        }
+      }
+    }
+  ]
+}
