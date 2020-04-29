@@ -2,7 +2,7 @@ const config = {};
 
 config.iota = {
   logLevel: 'FATAL',
-  logFile: false,
+  logFile: true,
   timestamp: true,
   contextBroker: {
     host: 'localhost',
