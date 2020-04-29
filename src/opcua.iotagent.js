@@ -1,11 +1,17 @@
 const iotAgentLib = require('iotagent-node-lib');
 const logger = require('winston');
 const async = require('async');
+const { Mutex } = require('async-mutex');
 const { Client } = require('./opcua/client');
 const { getOPCUAconnectionParameters } = require('./utils/payload');
 const { replaceForbiddenCharacters } = require('./utils/characters');
 
 let opcuaClients = {};
+
+// Mutex to ensure that only one client is created at a time.
+// This way we can recicle OPC UA clients, avoiding to create
+// a new OPC UA client if one already exists for the same endpoint.
+const createClientMutex = new Mutex();
 
 /**
  * Creates a new OPC UA client to connect to an OPC UA with an endpoint. If there is already
@@ -16,24 +22,29 @@ let opcuaClients = {};
  * @async
  */
 async function createOpcuaClient(connectionParameters, cb) {
-  if (!(connectionParameters.endpoint in opcuaClients)) {
-    const opcuaClient = new Client(
-      connectionParameters.endpoint,
-      connectionParameters.securityMode,
-      connectionParameters.securityPolicy,
-      connectionParameters.credentials
-    );
+  createClientMutex.acquire().then(async release => {
+    if (!(connectionParameters.endpoint in opcuaClients)) {
+      const opcuaClient = new Client(
+        connectionParameters.endpoint,
+        connectionParameters.securityMode,
+        connectionParameters.securityPolicy,
+        connectionParameters.credentials
+      );
 
-    try {
-      await opcuaClient.startClient();
-      return cb(null, opcuaClient);
-    } catch (err) {
-      return cb(err);
+      try {
+        await opcuaClient.startClient();
+        release();
+        return cb(null, opcuaClient);
+      } catch (err) {
+        release();
+        return cb(err);
+      }
     }
-  }
 
-  // There is already a client created for this endpoint
-  return cb(null, opcuaClients[connectionParameters.endpoint]);
+    // There is already a client created for this endpoint
+    release();
+    return cb(null, opcuaClients[connectionParameters.endpoint]);
+  });
 }
 
 /**
