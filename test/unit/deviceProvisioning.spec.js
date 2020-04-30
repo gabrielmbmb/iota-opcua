@@ -22,6 +22,7 @@ const noOpcuaCredentialsPasswordParameter = require('../json/deviceProvisioning/
 const opcuaValidPayload = require('../json/deviceProvisioning/opcua_valid_payload.json');
 const opcuaTwoDevicesValidPayload = require('../json/deviceProvisioning/opcua_two_devices_valid_payload.json');
 
+// IoTA API options
 const host = 'localhost';
 const { port } = config.iota.server;
 const service = 'test';
@@ -46,6 +47,7 @@ const optionsGetDevice = {
   },
 };
 
+// OCB API options
 const hostOCB = config.iota.contextBroker.host;
 const portOCB = config.iota.contextBroker.port;
 
@@ -162,7 +164,7 @@ describe('Device provisioning API', function() {
       );
     });
 
-    it('should return a message if OPC UA username is missing', function(done) {
+    it('should return a message if OPC UA credentials object is provided but username is missing', function(done) {
       request(
         { ...options, ...{ json: noOpcuaCredentialsUsernameParameter } },
         (err, res, body) => {
@@ -177,7 +179,7 @@ describe('Device provisioning API', function() {
       );
     });
 
-    it('should return a message if OPC UA password', function(done) {
+    it('should return a message if OPC UA credentials object is provided but password is missing', function(done) {
       request(
         { ...options, ...{ json: noOpcuaCredentialsPasswordParameter } },
         (err, res, body) => {
@@ -237,6 +239,7 @@ describe('Device provisioning API', function() {
       request(optionsOCB, (err, res, body) => {
         should().not.exist(err);
         expect(res.statusCode).to.equal(200);
+        expect(body).to.not.be.empty;
         body[0].should.have.property(
           'id',
           opcuaValidPayload.devices[0].entity_name
@@ -310,6 +313,24 @@ describe('Device provisioning API', function() {
         body.devices[1].should.have.property(
           'device_id',
           opcuaTwoDevicesValidPayload.devices[1].device_id
+        );
+        done();
+      });
+    });
+
+    it('should register the entities in OCB', function(done) {
+      request(optionsOCB, (err, res, body) => {
+        should().not.exist(err);
+        expect(res.statusCode).to.equal(200);
+        expect(body).to.not.be.empty;
+        body[0].should.have.property(
+          'id',
+          opcuaTwoDevicesValidPayload.devices[0].entity_name
+        );
+        // wut
+        body[1].should.have.property(
+          'id',
+          opcuaTwoDevicesValidPayload.devices[1].entity_name
         );
         done();
       });
