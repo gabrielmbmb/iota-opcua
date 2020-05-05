@@ -4,7 +4,7 @@ config.iota = {
   /**
    * Logging level. Valid values: 'SILLY', 'DEBUG', 'VERBOSE', 'INFO' , 'WARN' or 'ERROR'
    */
-  logLevel: 'DEBUG',
+  logLevel: process.env.IOTA_LOG_LEVEL || 'DEBUG',
   /**
    * If this flag is active, log messages will be saved in the directory 'logs'.
    */
@@ -21,11 +21,11 @@ config.iota = {
     /**
      * Host where OCB instance is located.
      */
-    host: 'localhost',
+    host: process.env.IOTA_CB_HOST || 'localhost',
     /**
      * Port where OCB instance is listening.
      */
-    port: '1026',
+    port: process.env.IOTA_CB_PORT || '1026',
   },
   /**
    * Configuration of the North Port of the IoT Agent.
@@ -34,7 +34,7 @@ config.iota = {
     /**
      * Port where the IoT Agent will be listening for NGSI and provisioning requests.
      */
-    port: '4081',
+    port: process.env.IOTA_NORTH_PORT || '4081',
   },
   /**
    * Defines the configuration for the Device Registry, where all the information about devices and configuration
@@ -47,7 +47,7 @@ config.iota = {
    *             from the 'mongodb' configuration property.
    */
   deviceRegistry: {
-    type: 'mongodb',
+    type: process.env.IOTA_REGISTRY_TYPE || 'mongodb',
     /**
      * Mongo DB configuration. This section will only be used if the deviceRegistry is 'mongodb'.
      */
@@ -56,15 +56,15 @@ config.iota = {
     /**
      * Host where the MongoDB instance is located.
      */
-    host: 'localhost',
+    host: process.env.IOTA_MONGO_HOST || 'localhost',
     /**
      * Port where the MongoDB instance is listening.
      */
-    port: '27017',
+    port: process.env.IOTA_MONGO_PORT || '27017',
     /**
      * Name of MongoDB where the IoT Agent data will be stored.
      */
-    db: 'iotagentopcua',
+    db: process.env.IOTA_MONGO_DB || 'iotagentopcua',
   },
   /**
    *  Types array for static configuration of services. Check documentation in the IoTAgent Library for Node.js for
@@ -85,7 +85,7 @@ config.iota = {
    * URL Where the IoT Agent Will listen for incoming updateContext and queryContext requests (for commands and
    * passive attributes). This URL will be sent in the Context Registration requests.
    */
-  providerUrl: 'http://localhost:4081',
+  providerUrl: process.env.IOTA_PROVIDER_URL || 'http://localhost:4081',
   /**
    * Default maximum expire date for device registrations.
    */
