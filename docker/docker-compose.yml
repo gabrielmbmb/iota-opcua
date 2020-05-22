@@ -3,13 +3,13 @@ version: '3.7'
 services:
   mongo:
     image: mongo:3.6
-    command: --nojournal
     expose:
       - '27017'
+    ports:
+      - '27017:27017'
     volumes:
       - mongo:/data
-    networks:
-      - orion-net
+    command: --bind_ip_all --smallfiles
 
   orion:
     image: fiware/orion
@@ -19,12 +19,30 @@ services:
       - '1026'
     ports:
       - '1026:1026'
-    networks:
-      - orion-net
-    command: -dbhost mongo -logLevel DEBUG
+    command: -dbhost mongo
+
+  iota-opcua:
+    image: gmartindev/iota-opcua
+    depends_on:
+      - mongo
+    expose:
+      - '4081'
+    ports:
+      - '4081:4081'
+    environment:
+      - IOTA_CB_HOST=orion
+      - IOTA_CB_PORT=1026
+      - IOTA_NORTH_PORT=4081
+      - IOTA_REGISTRY_TYPE=mongodb
+      - IOTA_MONGO_HOST=mongo
+      - IOTA_MONGO_PORT=27017
+      - IOTA_MONGO_DB=iota-opcua
+      - IOTA_PROVIDER_URL=http://iot-agent:4041
+
+  opcua-server:
+    image: gmartindev/opcua-test-server:latest
+    ports:
+      - '5001:5001'
 
 volumes: 
   mongo:
-
-networks:
-  orion-net:
